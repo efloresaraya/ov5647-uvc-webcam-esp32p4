@@ -1,0 +1,81 @@
+# sdkconfig.defaults — ov5647_uvc_webcam
+# Based on camera_sensor_stack_probe_RGB + TinyUSB UVC additions.
+
+# ── Camera sensor ────────────────────────────────────────────────────────────
+CONFIG_CAMERA_OV5647=y
+CONFIG_CAMERA_SC2336=y
+# RAW10 1280x960 binning 45fps — widest FOV (~99% of full 2592×1944 sensor),
+# landscape output (no software rotation needed), 2:1 hardware binning.
+CONFIG_CAMERA_OV5647_MIPI_RAW10_1280X960_BINNING_45FPS=y
+# CONFIG_CAMERA_OV5647_MIPI_RAW8_800X1280_50FPS is not set
+# CONFIG_CAMERA_OV5647_MIPI_RAW8_800X640_50FPS is not set
+# CONFIG_CAMERA_OV5647_MIPI_RAW8_800X800_50FPS is not set
+CONFIG_CAMERA_OV5647_CSI_LINESYNC_ENABLE=y
+CONFIG_CAM_CTRL_SPI_ENABLE=n
+
+# ── PSRAM (32 MB hex-mode @ 200 MHz) ────────────────────────────────────────
+CONFIG_SPIRAM=y
+CONFIG_SPIRAM_USE_MALLOC=y
+CONFIG_SPIRAM_MODE_HEX=y
+CONFIG_SPIRAM_SPEED_200M=y
+CONFIG_SPIRAM_MALLOC_ALWAYSINTERNAL=0
+CONFIG_PM_SLP_SPIRAM_HALFSLEEP_ENABLED=n
+
+# ── ESP32-P4 chip rev v1.3 ──────────────────────────────────────────────────
+CONFIG_ESP32P4_SELECTS_REV_LESS_V3=y
+CONFIG_ESP32P4_REV_MIN_100=y
+
+# ── Flash / partition ────────────────────────────────────────────────────────
+CONFIG_ESPTOOLPY_FLASHSIZE_16MB=y
+CONFIG_PARTITION_TABLE_SINGLE_APP=y
+
+# ── Logging ──────────────────────────────────────────────────────────────────
+CONFIG_LOG_DEFAULT_LEVEL_INFO=y
+CONFIG_LOG_DEFAULT_LEVEL=3
+
+# ── USB JTAG (keep enabled for debug logs on USB-C) ─────────────────────────
+CONFIG_USJ_ENABLE_USB_SERIAL_JTAG=y
+
+# ── Ethernet / WiFi — not used ───────────────────────────────────────────────
+# CONFIG_ETH_ENABLED is not set
+# CONFIG_ETH_USE_ESP32_EMAC is not set
+# CONFIG_ETH_USE_SPI_ETHERNET is not set
+# CONFIG_ESP_HOST_WIFI_ENABLED is not set
+
+# ── TinyUSB — USB OTG High Speed (USB-A port on ESP32-P4 Nano) ──────────────
+CONFIG_TINYUSB_ENABLED=y
+CONFIG_TINYUSB_RHPORT_HS_ENABLED=y
+
+# ── USB Device UVC (usb_device_uvc component from esp-iot-solution) ──────────
+# Format: MJPEG  (Kconfig choice: FORMAT_MJPEG_CAM1)
+CONFIG_FORMAT_MJPEG_CAM1=y
+
+# Transfer: ISOC (isochronous) — required for macOS UVC compatibility
+# (BULK causes AVFoundation C++ exception on macOS)
+CONFIG_UVC_MODE_ISOC_CAM1=y
+# CONFIG_UVC_MODE_BULK_CAM1 is not set
+
+# Single frame: VGA 640×480 (center-crop from 800×1280 sensor)
+# 640×480 is a standard macOS-compatible resolution (no AVFoundation exception).
+# Non-standard portrait resolutions (e.g. 400×640) cause a C++ exception in macOS.
+# Note: Kconfig uses HEIGT (typo in component), not HEIGHT
+CONFIG_FRAMESIZE_VGA=y
+# CONFIG_UVC_CAM1_MULTI_FRAMESIZE is not set
+CONFIG_UVC_CAM1_FRAMESIZE_WIDTH=640
+CONFIG_UVC_CAM1_FRAMESIZE_HEIGT=480
+
+# Frame rate hint exposed to host
+CONFIG_UVC_CAM1_FRAMERATE=15
+
+# USB descriptor strings shown in host device manager
+CONFIG_TUSB_VID=0x303A
+CONFIG_TUSB_PID=0x8000
+CONFIG_TUSB_MANUFACTURER="Enki ESP"
+CONFIG_TUSB_PRODUCT="OV5647 UVC Webcam"
+CONFIG_TUSB_SERIAL_NUM="ESP32P4-OV5647"
+
+# Task priorities (TinyUSB = USB protocol, CAM = fb_get_cb loop)
+CONFIG_UVC_TINYUSB_TASK_PRIORITY=5
+CONFIG_UVC_TINYUSB_TASK_CORE=-1
+CONFIG_UVC_CAM1_TASK_PRIORITY=4
+CONFIG_UVC_CAM1_TASK_CORE=-1

@@ -1,0 +1,18 @@
+# ESP-IDF build output
+build/
+sdkconfig
+
+# Managed components (auto-downloaded by idf_component_manager)
+managed_components/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# macOS
+.DS_Store
+
+# Editor
+.vscode/
+*.swp

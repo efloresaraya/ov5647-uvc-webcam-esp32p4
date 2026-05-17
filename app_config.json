@@ -1,0 +1,27 @@
+{
+  "project": "ov5647_uvc_webcam",
+  "target": "esp32p4",
+  "language": "c",
+  "framework": "esp-idf",
+  "rtos": "freertos",
+  "serial_port": "auto",
+  "baudrate": 115200,
+  "template": "ov5647_uvc_webcam",
+  "entry": "main/main.c",
+  "board_profile": "esp32p4_nano_32r16f",
+  "psram": true,
+  "flash_size": "16MB",
+  "partition_scheme": "single_factory",
+  "log_level": "warn",
+  "features": {
+    "usb_serial_jtag": true,
+    "usb_otg": true,
+    "ethernet": false,
+    "wifi_remote": false,
+    "bluetooth_external": false,
+    "camera_mipi": true,
+    "display_mipi": false,
+    "sdmmc": false,
+    "i2s_audio": false
+  }
+}

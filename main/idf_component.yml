@@ -1,0 +1,19 @@
+dependencies:
+  idf:
+    version: ">=5.3.0"
+
+  ## Camera sensor driver (OV5647 via MIPI CSI-2)
+  sensor_init:
+    path: ${IDF_PATH}/examples/peripherals/camera/common_components/sensor_init
+
+  ## USB host layer — removed from IDF v6, must be added explicitly
+  espressif/usb:
+    version: "*"
+
+  ## USB UVC device class (esp-iot-solution)
+  espressif/usb_device_uvc:
+    version: "*"
+
+  ## Camera sensor component (pulled in by sensor_init, pinned here for clarity)
+  espressif/esp_cam_sensor:
+    version: ">=1.2.1"
