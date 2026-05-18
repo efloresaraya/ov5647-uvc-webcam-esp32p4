@@ -18,8 +18,8 @@ Endpoints:
   GET /health           → {"status": "ok", "camera": <index>, "resolution": "WxH"}
 
 Agent one-liners:
-  curl -s http://localhost:8765/frame.jpg -o /tmp/frame.jpg
-  curl -s http://localhost:8765/base64 | python3 -c "import sys,json; print(json.load(sys.stdin)['image'][:80])"
+  curl -s http://localhost:8766/frame.jpg -o /tmp/frame.jpg
+  curl -s http://localhost:8766/base64 | python3 -c "import sys,json; print(json.load(sys.stdin)['image'][:80])"
 
 Requires: pip install opencv-python
 """
@@ -88,6 +88,10 @@ def capture_frame():
 
 
 # ── HTTP handler ──────────────────────────────────────────────────────────────
+
+class ReusableHTTPServer(HTTPServer):
+    allow_reuse_address = True
+
 
 class Handler(BaseHTTPRequestHandler):
 
@@ -161,7 +165,7 @@ def main():
         description="Local HTTP camera server — run in authorized Terminal, "
                     "call from any agent via curl."
     )
-    parser.add_argument("--port", "-p", type=int, default=8765)
+    parser.add_argument("--port", "-p", type=int, default=8766)
     parser.add_argument("--device", "-d", type=int, default=-1, metavar="INDEX",
                         help="Force camera index (default: auto-detect).")
     parser.add_argument("--host", default="127.0.0.1",
@@ -175,7 +179,7 @@ def main():
         print("             ESP32-P4 is connected with firmware running.")
         raise SystemExit(1)
 
-    server = HTTPServer((args.host, args.port), Handler)
+    server = ReusableHTTPServer((args.host, args.port), Handler)
     print(f"[cam_server] Listening on http://{args.host}:{args.port}")
     print(f"[cam_server] Endpoints:")
     print(f"             GET /frame.jpg  → JPEG image")

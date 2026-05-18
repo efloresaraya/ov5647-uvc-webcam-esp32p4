@@ -135,13 +135,13 @@ Now any agent calls `curl` — no Camera permission required:
 
 ```bash
 # Codex / any agent:
-curl -s http://localhost:8765/frame.jpg -o /tmp/frame.jpg
+curl -s http://localhost:8766/frame.jpg -o /tmp/frame.jpg
 
 # Base64 (for vision APIs):
-curl -s http://localhost:8765/base64
+curl -s http://localhost:8766/base64
 
 # Health check:
-curl -s http://localhost:8765/health
+curl -s http://localhost:8766/health
 ```
 
 Give Codex this context block:
@@ -149,19 +149,19 @@ Give Codex this context block:
 ```
 Tool: OV5647 UVC Webcam
 
-cam_server.py is already running in Terminal on http://localhost:8765.
+cam_server.py is already running in Terminal on http://localhost:8766.
 Camera permission is handled by that process — no permission needed here.
 
 Capture a frame to file:
-  curl -s http://localhost:8765/frame.jpg -o /tmp/frame.jpg
+  curl -s http://localhost:8766/frame.jpg -o /tmp/frame.jpg
   → file saved at /tmp/frame.jpg
 
 Capture as base64 JSON:
-  curl -s http://localhost:8765/base64
+  curl -s http://localhost:8766/base64
   → {"image": "data:image/jpeg;base64,..."}
 
 Check server is alive:
-  curl -s http://localhost:8765/health
+  curl -s http://localhost:8766/health
   → {"status": "ok", "camera": 0, "resolution": "640x480"}
 ```
 
