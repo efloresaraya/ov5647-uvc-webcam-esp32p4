@@ -62,6 +62,57 @@ On macOS the first time Terminal needs **Camera permission**: System Settings �
 
 ---
 
+## AI capture CLI
+
+`capture.py` is a single-frame capture tool designed to be called as a tool by AI agents (Claude, GPT-4o, etc.). It outputs only the saved file path to stdout — nothing else — so the caller can read the image directly.
+
+```bash
+pip install opencv-python
+
+# Save a frame (prints path to stdout)
+python3 capture.py
+# → frame_20260517_134201.jpg
+
+# Save to a specific path
+python3 capture.py -o /tmp/snapshot.jpg
+
+# Return base64 data URI to stdout (no file written)
+python3 capture.py --base64
+
+# PNG instead of JPEG
+python3 capture.py -o snapshot.png --png
+
+# List cameras
+python3 capture.py --list
+
+# Force camera index, quiet mode (path only, no logs)
+python3 capture.py -d 0 -q
+```
+
+### Using with Claude (MCP / tool use)
+
+Claude can capture and analyze frames by running `capture.py` as a Bash tool:
+
+```
+run: python3 capture.py -q -o /tmp/frame.jpg
+→ /tmp/frame.jpg
+
+read: /tmp/frame.jpg   (Claude's Read tool — multimodal)
+→ Claude sees the image and can describe, measure, or reason about it
+```
+
+### Using with any other AI
+
+For APIs that accept base64 images:
+
+```bash
+B64=$(python3 capture.py --base64 -q)
+# $B64 is a data:image/jpeg;base64,... string
+# pass directly to OpenAI vision, Gemini, etc.
+```
+
+---
+
 ## ESP-IDF version
 
 Tested with **ESP-IDF v6.1-dev** and ESP32-P4 target. The chip rev v1.3 quirks below apply to that release.
@@ -236,7 +287,8 @@ ov5647_uvc_webcam/
 ├── sdkconfig.defaults       # all Kconfig overrides (sensor, USB, UVC)
 ├── CMakeLists.txt
 ├── app_config.json
-└── view_webcam.py           # OpenCV live preview script
+├── view_webcam.py           # OpenCV live preview (interactive)
+└── capture.py               # single-frame CLI for AI agents
 ```
 
 ---
