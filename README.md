@@ -64,29 +64,45 @@ On macOS the first time Terminal needs **Camera permission**: System Settings �
 
 ## AI capture CLI
 
-`capture.py` is a single-frame capture tool designed to be called as a tool by AI agents (Claude, GPT-4o, etc.). It outputs only the saved file path to stdout — nothing else — so the caller can read the image directly.
+`capture.py` is a single-frame capture tool designed to be called as a tool by AI agents (Claude, GPT-4o, Codex, etc.). It outputs only the saved file path to stdout — nothing else — so the caller can read the image directly.
+
+### Prerequisites
+
+**Step 1 — verify setup** (run once before using with any agent):
 
 ```bash
-pip install opencv-python
+bash check_cam.sh
+```
 
+This checks for a Python with `cv2` and confirms macOS Camera permission for the current process.
+
+**Step 2 — note the two common issues on macOS:**
+
+| Issue | Symptom | Fix |
+|-------|---------|-----|
+| Wrong Python | `ModuleNotFoundError: cv2` | Use the Python that has OpenCV, e.g. `/opt/anaconda3/bin/python3` |
+| No Camera permission | `OpenCV: not authorized to capture video` | System Settings → Privacy & Security → Camera → grant to the **app running the shell** (Terminal, iTerm2, VS Code, etc.) |
+
+The system Python at `/usr/bin/python3` will not have `cv2`. Use whichever Python has OpenCV installed.
+
+### Usage
+
+```bash
 # Save a frame (prints path to stdout)
-python3 capture.py
-# → frame_20260517_134201.jpg
-
-# Save to a specific path
-python3 capture.py -o /tmp/snapshot.jpg
+/opt/anaconda3/bin/python3 capture.py -q -o /tmp/frame.jpg
+# → /tmp/frame.jpg
 
 # Return base64 data URI to stdout (no file written)
-python3 capture.py --base64
+/opt/anaconda3/bin/python3 capture.py --base64 -q
 
 # PNG instead of JPEG
-python3 capture.py -o snapshot.png --png
+/opt/anaconda3/bin/python3 capture.py --png -q -o /tmp/frame.png
 
 # List cameras
-python3 capture.py --list
+/opt/anaconda3/bin/python3 capture.py --list
 
-# Force camera index, quiet mode (path only, no logs)
-python3 capture.py -d 0 -q
+# Force camera index
+/opt/anaconda3/bin/python3 capture.py -d 0 -q
 ```
 
 ### Using with Claude (MCP / tool use)
@@ -94,21 +110,42 @@ python3 capture.py -d 0 -q
 Claude can capture and analyze frames by running `capture.py` as a Bash tool:
 
 ```
-run: python3 capture.py -q -o /tmp/frame.jpg
+run: /opt/anaconda3/bin/python3 capture.py -q -o /tmp/frame.jpg
 → /tmp/frame.jpg
 
 read: /tmp/frame.jpg   (Claude's Read tool — multimodal)
 → Claude sees the image and can describe, measure, or reason about it
 ```
 
-### Using with any other AI
+### Using with Codex or any shell-capable agent
 
-For APIs that accept base64 images:
+Give the agent this context block:
+
+```
+Tool: OV5647 UVC Webcam capture
+
+Capture a frame:
+  /opt/anaconda3/bin/python3 /path/to/capture.py -q -o /tmp/frame.jpg
+stdout → the saved file path (only)
+
+Capture as base64:
+  /opt/anaconda3/bin/python3 /path/to/capture.py --base64 -q
+stdout → data:image/jpeg;base64,<encoded image>
+
+Troubleshoot:
+  bash /path/to/check_cam.sh
+
+Prerequisites already confirmed:
+- OpenCV is available at /opt/anaconda3/bin/python3
+- Camera permission has been granted to this shell's app
+```
+
+### Using with any vision API
 
 ```bash
-B64=$(python3 capture.py --base64 -q)
+B64=$(/ opt/anaconda3/bin/python3 capture.py --base64 -q)
 # $B64 is a data:image/jpeg;base64,... string
-# pass directly to OpenAI vision, Gemini, etc.
+# pass directly to OpenAI vision, Gemini, Anthropic, etc.
 ```
 
 ---
@@ -288,7 +325,8 @@ ov5647_uvc_webcam/
 ├── CMakeLists.txt
 ├── app_config.json
 ├── view_webcam.py           # OpenCV live preview (interactive)
-└── capture.py               # single-frame CLI for AI agents
+├── capture.py               # single-frame CLI for AI agents
+└── check_cam.sh             # prerequisite check (Python + Camera permission)
 ```
 
 ---
