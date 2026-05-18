@@ -117,27 +117,52 @@ read: /tmp/frame.jpg   (Claude's Read tool — multimodal)
 → Claude sees the image and can describe, measure, or reason about it
 ```
 
-### Using with Codex or any shell-capable agent
+### Using with Codex or any agent that cannot get Camera permission
 
-Give the agent this context block:
+macOS grants Camera permission per **app** — not per process. If the agent's
+shell process is not the authorized app, OpenCV returns `not authorized to
+capture video` even with the right Python.
+
+**Solution: `cam_server.py` — run once in your authorized Terminal.**
+
+```bash
+# In your Terminal (which already has Camera permission):
+/opt/anaconda3/bin/python3 cam_server.py
+# → Listening on http://127.0.0.1:8765
+```
+
+Now any agent calls `curl` — no Camera permission required:
+
+```bash
+# Codex / any agent:
+curl -s http://localhost:8765/frame.jpg -o /tmp/frame.jpg
+
+# Base64 (for vision APIs):
+curl -s http://localhost:8765/base64
+
+# Health check:
+curl -s http://localhost:8765/health
+```
+
+Give Codex this context block:
 
 ```
-Tool: OV5647 UVC Webcam capture
+Tool: OV5647 UVC Webcam
 
-Capture a frame:
-  /opt/anaconda3/bin/python3 /path/to/capture.py -q -o /tmp/frame.jpg
-stdout → the saved file path (only)
+cam_server.py is already running in Terminal on http://localhost:8765.
+Camera permission is handled by that process — no permission needed here.
 
-Capture as base64:
-  /opt/anaconda3/bin/python3 /path/to/capture.py --base64 -q
-stdout → data:image/jpeg;base64,<encoded image>
+Capture a frame to file:
+  curl -s http://localhost:8765/frame.jpg -o /tmp/frame.jpg
+  → file saved at /tmp/frame.jpg
 
-Troubleshoot:
-  bash /path/to/check_cam.sh
+Capture as base64 JSON:
+  curl -s http://localhost:8765/base64
+  → {"image": "data:image/jpeg;base64,..."}
 
-Prerequisites already confirmed:
-- OpenCV is available at /opt/anaconda3/bin/python3
-- Camera permission has been granted to this shell's app
+Check server is alive:
+  curl -s http://localhost:8765/health
+  → {"status": "ok", "camera": 0, "resolution": "640x480"}
 ```
 
 ### Using with any vision API
@@ -325,7 +350,8 @@ ov5647_uvc_webcam/
 ├── CMakeLists.txt
 ├── app_config.json
 ├── view_webcam.py           # OpenCV live preview (interactive)
-├── capture.py               # single-frame CLI for AI agents
+├── capture.py               # single-frame CLI for AI agents (needs Camera permission)
+├── cam_server.py            # local HTTP server — agents call curl, no permission needed
 └── check_cam.sh             # prerequisite check (Python + Camera permission)
 ```
 
